@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, Button, TextInput, StyleSheet } from 'react-native';
+import { Text, View, Button, TextInput, StyleSheet, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,7 +9,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-
 class Nav2 extends React.Component {
   render() {
     return (
@@ -18,24 +17,18 @@ class Nav2 extends React.Component {
         <Stack.Screen name="Filmes" component={Filmes} />
         <Stack.Screen name="Resumo" component={ResumoFilme} />
         <Stack.Screen name="Quiz" component={Quiz} />
-        <Stack.Screen name="Resultado" component={Resultado} /> {/* Adicione esta linha */}
+        <Stack.Screen name="Resultado" component={Resultado} />
       </Stack.Navigator>
     );
   }
 }
 
-
 class Principal extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { usuario: '', senha: '' };
-  }
-
   async ler() {
     try {
       const senha = await AsyncStorage.getItem(this.state.usuario);
       if (senha != null && senha === this.state.senha) {
-        this.props.navigation.navigate('Quiz');
+        this.props.navigation.navigate('Quiz', { username: this.state.usuario });
       } else {
         alert(senha ? "Senha Incorreta!" : "Usuário não encontrado!");
       }
@@ -109,7 +102,8 @@ class Quiz extends React.Component {
     this.state = {
       questionIndex: 0,
       score: 0,
-      questions: this.shuffleQuestions(this.generateQuestions())
+      questions: this.shuffleQuestions(this.generateQuestions()),
+      username: this.props.route.params.username || 'Anônimo'
     };
   }
 
@@ -120,12 +114,10 @@ class Quiz extends React.Component {
       { question: "Qual é o resultado de 5 + 3?", answers: ["5", "7", "8", "10"], correct: 2 },
       { question: "Quem escreveu 'Dom Quixote'?", answers: ["Shakespeare", "Cervantes", "Hemingway", "Poe"], correct: 1 },
       { question: "Em que ano o homem pisou na Lua?", answers: ["1965", "1969", "1972", "1975"], correct: 1 },
-      // Adicione mais perguntas aqui conforme necessário
     ];
   }
 
   shuffleQuestions(questions) {
-    // Embaralha o array de perguntas usando o algoritmo Fisher-Yates
     for (let i = questions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [questions[i], questions[j]] = [questions[j], questions[i]];
@@ -138,19 +130,16 @@ class Quiz extends React.Component {
     const isCorrect = answerIndex === questions[questionIndex].correct;
 
     if (!isCorrect) {
-      // Se a resposta estiver incorreta, termina o quiz e navega para a tela de resultado
-      this.props.navigation.navigate('Resultado', { score });
+      this.finishQuiz();
       return;
     }
 
-    // Se estiver correta, atualiza a pontuação e vai para a próxima pergunta
     this.setState(
       {
         score: score + 1,
         questionIndex: questionIndex + 1
       },
       () => {
-        // Checa se ainda há mais perguntas
         if (this.state.questionIndex >= questions.length) {
           this.finishQuiz();
         }
@@ -158,9 +147,17 @@ class Quiz extends React.Component {
     );
   }
 
-  finishQuiz() {
-    const { score } = this.state;
-    this.props.navigation.navigate('Resultado', { score });
+  async finishQuiz() {
+    const { score, username } = this.state;
+    try {
+      const existingScores = await AsyncStorage.getItem('scores');
+      const parsedScores = existingScores ? JSON.parse(existingScores) : [];
+      parsedScores.push({ user: username, score });
+      await AsyncStorage.setItem('scores', JSON.stringify(parsedScores));
+      this.props.navigation.navigate('Resultado', { score });
+    } catch (error) {
+      console.log("Erro ao salvar pontuação:", error);
+    }
   }
 
   render() {
@@ -194,7 +191,54 @@ class Resultado extends React.Component {
   }
 }
 
+class Ranking extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { topScores: [] };
+  }
 
+  componentDidMount() {
+    this.loadTopScores();
+    this.focusListener = this.props.navigation.addListener('focus', () => {
+      this.loadTopScores();
+    });
+  }
+
+  componentWillUnmount() {
+    this.focusListener();
+  }
+
+  async loadTopScores() {
+    try {
+      const scores = await AsyncStorage.getItem('scores');
+      const parsedScores = scores ? JSON.parse(scores) : [];
+      const topScores = parsedScores.sort((a, b) => b.score - a.score).slice(0, 5);
+      this.setState({ topScores });
+    } catch (error) {
+      console.log("Erro ao carregar pontuações:", error);
+    }
+  }
+
+  render() {
+    return (
+      <View style={styles.rankingContainer}>
+        <Text style={styles.rankingTitle}>Top 5 Pontuadores</Text>
+        <FlatList
+          data={this.state.topScores}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item, index }) => (
+            <View style={styles.rankingItem}>
+              <Text style={styles.rankingPosition}>{index + 1}º</Text>
+              <Text style={styles.rankingName}>{item.user}</Text>
+              <Text style={styles.rankingScore}>{item.score} pontos</Text>
+            </View>
+          )}
+          ListEmptyComponent={<Text style={styles.emptyText}>Ainda não há pontuações registradas.</Text>}
+        />
+      </View>
+    );
+  }
+}
 
 function LoginStack() {
   return (
@@ -227,6 +271,16 @@ class App extends React.Component {
             options={{
               tabBarIcon: ({ color, size }) => (
                 <MaterialCommunityIcons name="account-plus" color={color} size={size} />
+              ),
+              headerShown: false,
+            }}
+          />
+          <Tab.Screen
+            name="Ranking"
+            component={Ranking}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="trophy" color={color} size={size} />
               ),
               headerShown: false,
             }}
@@ -269,9 +323,37 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  resultText: {
+  rankingContainer: {
+    flex: 1,
+    padding: 20,
+    alignItems: 'center',
+  },
+  rankingTitle: {
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  rankingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  rankingPosition: {
     fontSize: 18,
-    marginBottom: 10,
-    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  rankingName: {
+    fontSize: 18,
+  },
+  rankingScore: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6200EE',
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#999',
   },
 });
