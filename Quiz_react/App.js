@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, Button, TextInput, StyleSheet, FlatList } from 'react-native';
+import { Text, View, Button, TextInput, StyleSheet, FlatList, TouchableOpacity, Vibration } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -114,6 +114,54 @@ class Quiz extends React.Component {
       { question: "Qual é o resultado de 5 + 3?", answers: ["5", "7", "8", "10"], correct: 2 },
       { question: "Quem escreveu 'Dom Quixote'?", answers: ["Shakespeare", "Cervantes", "Hemingway", "Poe"], correct: 1 },
       { question: "Em que ano o homem pisou na Lua?", answers: ["1965", "1969", "1972", "1975"], correct: 1 },
+      { question: "Qual é a cor do céu em um dia claro?", answers: ["Azul", "Verde", "Amarelo", "Vermelho"], correct: 0 },
+    { question: "Qual é o nome do planeta onde vivemos?", answers: ["Marte", "Terra", "Vênus", "Júpiter"], correct: 1 },
+    { question: "Quem é o presidente dos Estados Unidos (em 2024)?", answers: ["Donald Trump", "Joe Biden", "Barack Obama", "George W. Bush"], correct: 1 },
+    { question: "Qual é a moeda do Brasil?", answers: ["Peso", "Dólar", "Real", "Euro"], correct: 2 },
+    { question: "Qual é o nome do famoso super-herói que usa um manto e um cinto de utilidades, e luta contra o crime em Gotham City?", answers: ["Superman", "Batman", "Homem-Aranha", "Flash"], correct: 1 },
+
+    // Perguntas médias
+    { question: "Quem pintou a Mona Lisa?", answers: ["Pablo Picasso", "Leonardo da Vinci", "Vincent van Gogh", "Salvador Dalí"], correct: 1 },
+    { question: "Em que país foi inventada a pizza?", answers: ["França", "Estados Unidos", "Itália", "Grécia"], correct: 2 },
+    { question: "Qual é o maior oceano do planeta?", answers: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
+    { question: "Qual é o símbolo químico da água?", answers: ["H2O", "O2", "CO2", "H2"], correct: 0 },
+    { question: "Qual é a capital da Alemanha?", answers: ["Berlim", "Munique", "Frankfurt", "Hamburgo"], correct: 0 },
+    { question: "Em que continente está o Egito?", answers: ["Ásia", "Europa", "África", "Oceania"], correct: 2 },
+    { question: "Quem escreveu o livro 'Harry Potter e a Pedra Filosofal'?", answers: ["J.R.R. Tolkien", "George R.R. Martin", "J.K. Rowling", "Suzanne Collins"], correct: 2 },
+    { question: "Quantos estados tem o Brasil?", answers: ["25", "27", "30", "32"], correct: 1 },
+    { question: "Qual é o nome do maior animal terrestre?", answers: ["Elefante", "Girafa", "Hipopótamo", "Baleia"], correct: 0 },
+    { question: "Em qual ano o Brasil conquistou o primeiro título da Copa do Mundo de Futebol?", answers: ["1930", "1950", "1958", "1962"], correct: 2 },
+
+    // Perguntas difíceis
+    { question: "Quem foi o primeiro imperador do Brasil?", answers: ["Pedro I", "Dom João VI", "Dom Pedro II", "Getúlio Vargas"], correct: 0 },
+    { question: "Qual é a fórmula matemática usada para calcular a área de um círculo?", answers: ["A = b × h", "A = 2πr", "A = πr²", "A = l²"], correct: 2 },
+    { question: "Em que ano a União Soviética foi dissolvida?", answers: ["1985", "1991", "1995", "1989"], correct: 1 },
+    { question: "Qual é o nome da teoria proposta por Charles Darwin sobre a evolução das espécies?", answers: ["Teoria da Relatividade", "Teoria da Seleção Natural", "Teoria do Big Bang", "Teoria das Cordas"], correct: 1 },
+    { question: "Qual é o nome da estrela mais próxima da Terra depois do Sol?", answers: ["Sirius", "Alpha Centauri", "Vega", "Betelgeuse"], correct: 1 },
+    { question: "Qual é o nome do famoso rato da Disney?", answers: ["Mickey Mouse", "Pato Donald", "Minnie Mouse", "Goofy"], correct: 0 },
+    { question: "Quantos dias tem um ano?", answers: ["365", "366", "400", "365,25"], correct: 0 },
+    { question: "Qual é o maior continente do mundo?", answers: ["África", "América", "Ásia", "Europa"], correct: 2 },
+    { question: "Quem foi o autor de 'O Pequeno Príncipe'?", answers: ["Machado de Assis", "J.K. Rowling", "Antoine de Saint-Exupéry", "Monteiro Lobato"], correct: 2 },
+    { question: "Qual é a cor do sol?", answers: ["Amarelo", "Laranja", "Branco", "Azul"], correct: 0 },
+
+    // Perguntas médias
+    { question: "Qual é o maior rio do mundo?", answers: ["Rio Amazonas", "Rio Nilo", "Rio Yangtze", "Rio Mississipi"], correct: 0 },
+    { question: "Em que país nasceu a artista Frida Kahlo?", answers: ["México", "Espanha", "Argentina", "Brasil"], correct: 0 },
+    { question: "Qual é a capital do Japão?", answers: ["Tóquio", "Pequim", "Seul", "Hong Kong"], correct: 0 },
+    { question: "Qual é a fórmula química do sal de cozinha?", answers: ["NaCl", "NaOH", "H2O", "CO2"], correct: 0 },
+    { question: "Qual é o nome do primeiro satélite artificial lançado pela Terra?", answers: ["Sputnik 1", "Apollo 11", "Hubble", "Explorer 1"], correct: 0 },
+    { question: "Em que ano começou a Segunda Guerra Mundial?", answers: ["1935", "1939", "1945", "1929"], correct: 1 },
+    { question: "Qual é o maior lago do mundo em volume de água?", answers: ["Lago Baikal", "Lago Titicaca", "Lago Superior", "Lago Caspiano"], correct: 0 },
+    { question: "Qual é a maior montanha do mundo?", answers: ["Monte Kilimanjaro", "Monte Everest", "Monte Fuji", "Aconcágua"], correct: 1 },
+    { question: "Quantos planetas existem no sistema solar?", answers: ["7", "8", "9", "10"], correct: 1 },
+    { question: "Quem foi o criador da teoria da relatividade?", answers: ["Isaac Newton", "Galileu Galilei", "Albert Einstein", "Nikola Tesla"], correct: 2 },
+
+    // Perguntas difíceis
+    { question: "Em que ano a Revolução Francesa começou?", answers: ["1776", "1789", "1804", "1792"], correct: 1 },
+    { question: "Qual é o elemento químico com o símbolo 'Fe'?", answers: ["Ferro", "Flúor", "Fósforo", "Félio"], correct: 0 },
+    { question: "Quem foi o autor da teoria da psicanálise?", answers: ["Carl Jung", "Sigmund Freud", "B.F. Skinner", "Jean Piaget"], correct: 1 },
+    { question: "Qual é a capital da Mongólia?", answers: ["Ulaanbaatar", "Astana", "Lima", "Tashkent"], correct: 0 },
+    { question: "Em que ano a primeira Guerra Mundial terminou?", answers: ["1912", "1915", "1918", "1920"], correct: 2 },
     ];
   }
 
@@ -133,6 +181,8 @@ class Quiz extends React.Component {
       this.finishQuiz();
       return;
     }
+
+    Vibration.vibrate();
 
     this.setState(
       {
@@ -168,14 +218,27 @@ class Quiz extends React.Component {
 
     return (
       <View style={styles.quizContainer}>
+        {/* Exibindo o número da pergunta atual */}
+        <Text style={styles.questionNumber}>
+          Pergunta {questionIndex + 1} de {questions.length}
+        </Text>
+
         <Text style={styles.questionText}>{question.question}</Text>
         {question.answers.map((answer, index) => (
-          <Button key={index} title={answer} onPress={() => this.handleAnswer(index)} color="#6200EE" />
+          <TouchableOpacity
+            key={index}
+            style={styles.answerButton}
+            onPress={() => this.handleAnswer(index)}
+          >
+            <Text style={styles.answerText}>{answer}</Text>
+          </TouchableOpacity>
         ))}
       </View>
     );
   }
 }
+
+// Restante do código permanece o mesmo.
 
 class Resultado extends React.Component {
   render() {
@@ -212,7 +275,19 @@ class Ranking extends React.Component {
     try {
       const scores = await AsyncStorage.getItem('scores');
       const parsedScores = scores ? JSON.parse(scores) : [];
-      const topScores = parsedScores.sort((a, b) => b.score - a.score).slice(0, 5);
+
+      // Filtra para manter apenas a maior pontuação de cada usuário
+      const highestScores = parsedScores.reduce((acc, current) => {
+        const existingUser = acc.find((item) => item.user === current.user);
+        if (!existingUser || existingUser.score < current.score) {
+          acc = acc.filter((item) => item.user !== current.user); // Remove o usuário com pontuação menor
+          acc.push(current); // Adiciona a maior pontuação
+        }
+        return acc;
+      }, []);
+
+      // Ordena e pega os 5 maiores pontuadores
+      const topScores = highestScores.sort((a, b) => b.score - a.score).slice(0, 5);
       this.setState({ topScores });
     } catch (error) {
       console.log("Erro ao carregar pontuações:", error);
@@ -318,6 +393,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
+  questionNumber: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+    color: '#333',
+  },
   questionText: {
     fontSize: 20,
     marginBottom: 20,
@@ -325,12 +406,16 @@ const styles = StyleSheet.create({
   },
   rankingContainer: {
     flex: 1,
+    justifyContent: 'center', // Centraliza verticalmente
+    alignItems: 'center', // Centraliza horizontalmente
     padding: 20,
-    alignItems: 'center',
+    marginTop: 50, // Ajuste para que o conteúdo fique mais para baixo
   },
   rankingTitle: {
     fontSize: 24,
     marginBottom: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   rankingItem: {
     flexDirection: 'row',
@@ -339,6 +424,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderColor: '#ddd',
+    alignItems: 'center',
   },
   rankingPosition: {
     fontSize: 18,
@@ -346,6 +432,7 @@ const styles = StyleSheet.create({
   },
   rankingName: {
     fontSize: 18,
+    textAlign: 'center',
   },
   rankingScore: {
     fontSize: 18,
@@ -355,5 +442,33 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     color: '#999',
+    textAlign: 'center',
+  },
+  quizContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  questionText: {
+    fontSize: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  answerButton: {
+    backgroundColor: '#6200EE',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  answerText: {
+    fontSize: 18,
+    color: '#FFF',
+    textAlign: 'center',
   },
 });
