@@ -103,7 +103,8 @@ class Quiz extends React.Component {
       questionIndex: 0,
       score: 0,
       questions: this.shuffleQuestions(this.generateQuestions()),
-      username: this.props.route.params.username || 'Anônimo'
+      username: this.props.route.params.username || 'Anônimo',
+      shouldSaveScore: false, // Novo estado para controlar quando a pontuação deve ser salva
     };
   }
 
@@ -178,6 +179,7 @@ class Quiz extends React.Component {
     const isCorrect = answerIndex === questions[questionIndex].correct;
 
     if (!isCorrect) {
+      this.setState({ shouldSaveScore: false }); // Não salva se errar
       this.finishQuiz();
       return;
     }
@@ -187,7 +189,8 @@ class Quiz extends React.Component {
     this.setState(
       {
         score: score + 1,
-        questionIndex: questionIndex + 1
+        questionIndex: questionIndex + 1,
+        shouldSaveScore: questionIndex + 1 === questions.length - 1, // Marca para salvar ao fim do quiz
       },
       () => {
         if (this.state.questionIndex >= questions.length) {
@@ -198,16 +201,25 @@ class Quiz extends React.Component {
   }
 
   async finishQuiz() {
-    const { score, username } = this.state;
-    try {
-      const existingScores = await AsyncStorage.getItem('scores');
-      const parsedScores = existingScores ? JSON.parse(existingScores) : [];
-      parsedScores.push({ user: username, score });
-      await AsyncStorage.setItem('scores', JSON.stringify(parsedScores));
-      this.props.navigation.navigate('Resultado', { score });
-    } catch (error) {
-      console.log("Erro ao salvar pontuação:", error);
+    const { score, username, shouldSaveScore } = this.state;
+
+    if (shouldSaveScore) { // Salva apenas se shouldSaveScore for verdadeiro
+      try {
+        const existingScores = await AsyncStorage.getItem('scores');
+        const parsedScores = existingScores ? JSON.parse(existingScores) : [];
+        parsedScores.push({ user: username, score });
+        await AsyncStorage.setItem('scores', JSON.stringify(parsedScores));
+        this.props.navigation.navigate('Resultado', { score });
+      } catch (error) {
+        console.log("Erro ao salvar pontuação:", error);
+      }
+    } else {
+      this.props.navigation.navigate('Resultado', { score: 0 });
     }
+  }
+
+  stopQuiz() {
+    this.setState({ shouldSaveScore: true }, () => this.finishQuiz()); // Força o salvamento ao parar
   }
 
   render() {
@@ -218,7 +230,6 @@ class Quiz extends React.Component {
 
     return (
       <View style={styles.quizContainer}>
-        {/* Exibindo o número da pergunta atual */}
         <Text style={styles.questionNumber}>
           Pergunta {questionIndex + 1} de {questions.length}
         </Text>
@@ -233,6 +244,9 @@ class Quiz extends React.Component {
             <Text style={styles.answerText}>{answer}</Text>
           </TouchableOpacity>
         ))}
+
+        {/* Botão de parar quiz */}
+        <Button title="Parar Quiz" onPress={() => this.stopQuiz()} color="#FF6347" />
       </View>
     );
   }
