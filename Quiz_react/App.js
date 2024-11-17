@@ -6,9 +6,15 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+// Criação das abas de navegação (tab navigation) e navegação empilhada (stack navigation)
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+
+/* 
+Componente responsável por gerenciar a navegação empilhada. 
+Inclui as telas Login, Quiz, Resultado, e outras associadas.
+*/
 class Nav2 extends React.Component {
   render() {
     return (
@@ -23,16 +29,20 @@ class Nav2 extends React.Component {
   }
 }
 
+// Tela Principal: Implementa a lógica de login. 
+
 class Principal extends React.Component {
+    // Função assíncrona para verificar se o login é válido
   async ler() {
     try {
       const senha = await AsyncStorage.getItem(this.state.usuario);
       if (senha != null && senha === this.state.senha) {
-        this.props.navigation.navigate('Quiz', { username: this.state.usuario });
-      } else {
+                // Navega para a tela de Quiz caso as credenciais sejam corretas
+        this.props.navigation.navigate('Quiz', { nomeUsuario: this.state.usuario });
+      } else {         // Exibe mensagem de erro caso o login falhe
         alert(senha ? "Senha Incorreta!" : "Usuário não encontrado!");
       }
-    } catch (erro) {
+    } catch (erro) { // Loga possíveis erros para depuração
       console.log(erro);
     }
   }
@@ -59,12 +69,13 @@ class Principal extends React.Component {
   }
 }
 
+// Tela de Cadastro: Permite registrar um novo usuário com senha. 
 class Cadastro extends React.Component {
   constructor(props) {
     super(props);
     this.state = { user: '', password: '' };
   }
-
+  // Função assíncrona para salvar o novo usuário e senha no AsyncStorage
   async gravar() {
     try {
       await AsyncStorage.setItem(this.state.user, this.state.password);
@@ -96,18 +107,20 @@ class Cadastro extends React.Component {
   }
 }
 
+// Tela de Quiz: Mostra perguntas e permite o usuário responder. 
 class Quiz extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      questionIndex: 0,
-      score: 0,
-      questions: this.shuffleQuestions(this.generateQuestions()),
-      username: this.props.route.params.username || 'Anônimo',
-      shouldSaveScore: false, // Novo estado para controlar quando a pontuação deve ser salva
+      questionIndex: 0, // Índice da pergunta atual
+      score: 0, // Pontuação do usuário
+      questions: this.escolherPerguntas(this.generateQuestions()), // Lista de perguntas
+      nomeUsuario: this.props.route.params.nomeUsuario || 'Anônimo',
+      contarPontuacao: false, // Novo estado para controlar quando a pontuação deve ser salva
     };
   }
 
+  // Gera uma lista de perguntas e respostas fixas
   generateQuestions() {
     return [
       { question: "Qual é a capital da França?", answers: ["Paris", "Roma", "Londres", "Berlim"], correct: 0 },
@@ -120,8 +133,6 @@ class Quiz extends React.Component {
     { question: "Quem é o presidente dos Estados Unidos (em 2024)?", answers: ["Donald Trump", "Joe Biden", "Barack Obama", "George W. Bush"], correct: 1 },
     { question: "Qual é a moeda do Brasil?", answers: ["Peso", "Dólar", "Real", "Euro"], correct: 2 },
     { question: "Qual é o nome do famoso super-herói que usa um manto e um cinto de utilidades, e luta contra o crime em Gotham City?", answers: ["Superman", "Batman", "Homem-Aranha", "Flash"], correct: 1 },
-
-    // Perguntas médias
     { question: "Quem pintou a Mona Lisa?", answers: ["Pablo Picasso", "Leonardo da Vinci", "Vincent van Gogh", "Salvador Dalí"], correct: 1 },
     { question: "Em que país foi inventada a pizza?", answers: ["França", "Estados Unidos", "Itália", "Grécia"], correct: 2 },
     { question: "Qual é o maior oceano do planeta?", answers: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
@@ -132,8 +143,6 @@ class Quiz extends React.Component {
     { question: "Quantos estados tem o Brasil?", answers: ["25", "27", "30", "32"], correct: 1 },
     { question: "Qual é o nome do maior animal terrestre?", answers: ["Elefante", "Girafa", "Hipopótamo", "Baleia"], correct: 0 },
     { question: "Em qual ano o Brasil conquistou o primeiro título da Copa do Mundo de Futebol?", answers: ["1930", "1950", "1958", "1962"], correct: 2 },
-
-    // Perguntas difíceis
     { question: "Quem foi o primeiro imperador do Brasil?", answers: ["Pedro I", "Dom João VI", "Dom Pedro II", "Getúlio Vargas"], correct: 0 },
     { question: "Qual é a fórmula matemática usada para calcular a área de um círculo?", answers: ["A = b × h", "A = 2πr", "A = πr²", "A = l²"], correct: 2 },
     { question: "Em que ano a União Soviética foi dissolvida?", answers: ["1985", "1991", "1995", "1989"], correct: 1 },
@@ -144,8 +153,6 @@ class Quiz extends React.Component {
     { question: "Qual é o maior continente do mundo?", answers: ["África", "América", "Ásia", "Europa"], correct: 2 },
     { question: "Quem foi o autor de 'O Pequeno Príncipe'?", answers: ["Machado de Assis", "J.K. Rowling", "Antoine de Saint-Exupéry", "Monteiro Lobato"], correct: 2 },
     { question: "Qual é a cor do sol?", answers: ["Amarelo", "Laranja", "Branco", "Azul"], correct: 0 },
-
-    // Perguntas médias
     { question: "Qual é o maior rio do mundo?", answers: ["Rio Amazonas", "Rio Nilo", "Rio Yangtze", "Rio Mississipi"], correct: 0 },
     { question: "Em que país nasceu a artista Frida Kahlo?", answers: ["México", "Espanha", "Argentina", "Brasil"], correct: 0 },
     { question: "Qual é a capital do Japão?", answers: ["Tóquio", "Pequim", "Seul", "Hong Kong"], correct: 0 },
@@ -156,17 +163,22 @@ class Quiz extends React.Component {
     { question: "Qual é a maior montanha do mundo?", answers: ["Monte Kilimanjaro", "Monte Everest", "Monte Fuji", "Aconcágua"], correct: 1 },
     { question: "Quantos planetas existem no sistema solar?", answers: ["7", "8", "9", "10"], correct: 1 },
     { question: "Quem foi o criador da teoria da relatividade?", answers: ["Isaac Newton", "Galileu Galilei", "Albert Einstein", "Nikola Tesla"], correct: 2 },
-
-    // Perguntas difíceis
     { question: "Em que ano a Revolução Francesa começou?", answers: ["1776", "1789", "1804", "1792"], correct: 1 },
     { question: "Qual é o elemento químico com o símbolo 'Fe'?", answers: ["Ferro", "Flúor", "Fósforo", "Félio"], correct: 0 },
     { question: "Quem foi o autor da teoria da psicanálise?", answers: ["Carl Jung", "Sigmund Freud", "B.F. Skinner", "Jean Piaget"], correct: 1 },
     { question: "Qual é a capital da Mongólia?", answers: ["Ulaanbaatar", "Astana", "Lima", "Tashkent"], correct: 0 },
     { question: "Em que ano a primeira Guerra Mundial terminou?", answers: ["1912", "1915", "1918", "1920"], correct: 2 },
+    { question: "Em que ano a primeira Guerra Mundial terminou?", answers: ["1912", "1915", "1918", "1920"], correct: 2 },
+    { question: "Qual é o número atômico do elemento Hidrogênio?", answers: ["10", "8", "2", "1"], correct: 3 },
+    { question: "Quem é conhecido como o 'Pai da Computação'?", answers: ["Alan Turing", "Steve Jobs", "Bill Gates", "Charles Babbage"], correct: 3 },
+    { question: "Qual é o símbolo químico do Ouro?", answers: ["Au", "Ag", "Fe", "Cu"], correct: 0 },
+    { question: "Qual é o gás mais abundante na atmosfera da Terra?", answers: ["Oxigênio", "Hidrogênio", "Nitrogênio", "Dióxido de Carbono"], correct: 2 },
+    { question: "Quantos lados tem um hexágono?", answers: ["5", "6", "7", "8"], correct: 1 },
     ];
   }
 
-  shuffleQuestions(questions) {
+  // Embaralha as perguntas para exibição aleatória
+  escolherPerguntas(questions) {
     for (let i = questions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [questions[i], questions[j]] = [questions[j], questions[i]];
@@ -174,40 +186,42 @@ class Quiz extends React.Component {
     return questions;
   }
 
-  handleAnswer(answerIndex) {
+  // Verifica se a resposta selecionada está correta
+  verificaPegunta(answerIndex) {
     const { questionIndex, questions, score } = this.state;
-    const isCorrect = answerIndex === questions[questionIndex].correct;
+    const acertou = answerIndex === questions[questionIndex].correct;
 
-    if (!isCorrect) {
-      this.setState({ shouldSaveScore: false }); // Não salva se errar
-      this.finishQuiz();
+    if (!acertou) {
+      this.setState({ contarPontuacao: false }); // Não salva se errar
+      this.terminarQuiz();
       return;
     }
 
-    Vibration.vibrate();
+    Vibration.vibrate(); // Vibra ao acertar
 
     this.setState(
       {
-        score: score + 1,
-        questionIndex: questionIndex + 1,
-        shouldSaveScore: questionIndex + 1 === questions.length - 1, // Marca para salvar ao fim do quiz
+        score: score + 1, // Incrementa a pontuação
+        questionIndex: questionIndex + 1,// Avança para a próxima pergunta
+        contarPontuacao: questionIndex + 1 === questions.length - 1, // Salva pontuação no final
       },
       () => {
         if (this.state.questionIndex >= questions.length) {
-          this.finishQuiz();
+          this.terminarQuiz();
         }
       }
     );
   }
 
-  async finishQuiz() {
-    const { score, username, shouldSaveScore } = this.state;
+  // Finaliza o quiz e salva a pontuação
+  async terminarQuiz() {
+    const { score, nomeUsuario, contarPontuacao } = this.state;
 
-    if (shouldSaveScore) { // Salva apenas se shouldSaveScore for verdadeiro
+    if (contarPontuacao) { 
       try {
         const existingScores = await AsyncStorage.getItem('scores');
         const parsedScores = existingScores ? JSON.parse(existingScores) : [];
-        parsedScores.push({ user: username, score });
+        parsedScores.push({ user: nomeUsuario, score });
         await AsyncStorage.setItem('scores', JSON.stringify(parsedScores));
         this.props.navigation.navigate('Resultado', { score });
       } catch (error) {
@@ -218,8 +232,9 @@ class Quiz extends React.Component {
     }
   }
 
-  stopQuiz() {
-    this.setState({ shouldSaveScore: true }, () => this.finishQuiz()); // Força o salvamento ao parar
+  // Interrompe o quiz antes do final
+  pararQuiz() {
+    this.setState({ contarPontuacao: true }, () => this.terminarQuiz()); // Força o salvamento ao parar
   }
 
   render() {
@@ -239,24 +254,23 @@ class Quiz extends React.Component {
           <TouchableOpacity
             key={index}
             style={styles.answerButton}
-            onPress={() => this.handleAnswer(index)}
+            onPress={() => this.verificaPegunta(index)}
           >
             <Text style={styles.answerText}>{answer}</Text>
           </TouchableOpacity>
         ))}
 
         {/* Botão de parar quiz */}
-        <Button title="Parar Quiz" onPress={() => this.stopQuiz()} color="#FF6347" />
+        <Button title="Parar Quiz" onPress={() => this.pararQuiz()} color="#FF6347" />
       </View>
     );
   }
 }
 
-// Restante do código permanece o mesmo.
-
+// Tela Resultado: Mostra o resultado final do quiz 
 class Resultado extends React.Component {
   render() {
-    const { score } = this.props.route.params;
+    const { score } = this.props.route.params; // Obtém a pontuação passada pela navegação
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold' }}>
@@ -271,13 +285,13 @@ class Resultado extends React.Component {
 class Ranking extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { topScores: [] };
+    this.state = { melhoresPontuadores: [] };
   }
 
   componentDidMount() {
-    this.loadTopScores();
+    this.carregarMelhoresPontuadores();
     this.focusListener = this.props.navigation.addListener('focus', () => {
-      this.loadTopScores();
+      this.carregarMelhoresPontuadores();
     });
   }
 
@@ -285,15 +299,15 @@ class Ranking extends React.Component {
     this.focusListener();
   }
 
-  async loadTopScores() {
+  async carregarMelhoresPontuadores() {
     try {
       const scores = await AsyncStorage.getItem('scores');
       const parsedScores = scores ? JSON.parse(scores) : [];
 
       // Filtra para manter apenas a maior pontuação de cada usuário
-      const highestScores = parsedScores.reduce((acc, current) => {
-        const existingUser = acc.find((item) => item.user === current.user);
-        if (!existingUser || existingUser.score < current.score) {
+      const maioresPontuacoes = parsedScores.reduce((acc, current) => {
+        const usuarioExistente = acc.find((item) => item.user === current.user);
+        if (!usuarioExistente || usuarioExistente.score < current.score) {
           acc = acc.filter((item) => item.user !== current.user); // Remove o usuário com pontuação menor
           acc.push(current); // Adiciona a maior pontuação
         }
@@ -301,8 +315,8 @@ class Ranking extends React.Component {
       }, []);
 
       // Ordena e pega os 5 maiores pontuadores
-      const topScores = highestScores.sort((a, b) => b.score - a.score).slice(0, 5);
-      this.setState({ topScores });
+      const melhoresPontuadores = maioresPontuacoes.sort((a, b) => b.score - a.score).slice(0, 5);
+      this.setState({melhoresPontuadores });
     } catch (error) {
       console.log("Erro ao carregar pontuações:", error);
     }
@@ -313,7 +327,7 @@ class Ranking extends React.Component {
       <View style={styles.rankingContainer}>
         <Text style={styles.rankingTitle}>Top 5 Pontuadores</Text>
         <FlatList
-          data={this.state.topScores}
+          data={this.state.melhoresPontuadores}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item, index }) => (
             <View style={styles.rankingItem}>
@@ -420,10 +434,10 @@ const styles = StyleSheet.create({
   },
   rankingContainer: {
     flex: 1,
-    justifyContent: 'center', // Centraliza verticalmente
-    alignItems: 'center', // Centraliza horizontalmente
+    justifyContent: 'center', 
+    alignItems: 'center', 
     padding: 20,
-    marginTop: 50, // Ajuste para que o conteúdo fique mais para baixo
+    marginTop: 50, 
   },
   rankingTitle: {
     fontSize: 24,
