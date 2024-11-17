@@ -75,13 +75,34 @@ class Cadastro extends React.Component {
     super(props);
     this.state = { user: '', password: '' };
   }
+  // Função assíncrona para verificar se o nome de usuário já existe
+  async verificarUsuarioExistente(user) {
+    try {
+      const existingUser = await AsyncStorage.getItem(user);
+      return existingUser !== null;
+    } catch (erro) {
+      console.log("Erro ao verificar o usuário:", erro);
+      return false;
+    }
+  }
   // Função assíncrona para salvar o novo usuário e senha no AsyncStorage
   async gravar() {
+    const { user, password } = this.state;
+
+    // Verifica se o nome de usuário já está registrado
+    const usuarioExistente = await this.verificarUsuarioExistente(user);
+    if (usuarioExistente) {
+      alert("Usuário já existe! Escolha outro nome.");
+      return;
+    }
+
     try {
-      await AsyncStorage.setItem(this.state.user, this.state.password);
+      // Salva o novo usuário e senha no AsyncStorage
+      await AsyncStorage.setItem(user, password);
       alert("Usuário cadastrado com sucesso!");
+      this.setState({ user: '', password: '' }); // Limpa os campos
     } catch (erro) {
-      alert("Erro ao salvar!");
+      alert("Erro ao salvar o usuário!");
     }
   }
 
